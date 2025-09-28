@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Intelligent Product Support</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0e1116;
+            --panel: #161b22;
+            --panel-2: #0f1620;
+            --accent: #61dafb;
+            --accent-2: #8fff9f;
+            --text: #e6edf3;
+            --muted: #9aa8b1;
+            --danger: #ff6b6b;
+            --ok: #8fff9f;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 0 0 16px;
+        }
+
+        .wrap {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid #242a33;
+            border-radius: var(--radius);
+            padding: 18px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin: 10px 0 0;
+        }
+
+        button {
+            background: #1f6feb;
+            color: #fff;
+            border: 0;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s transform ease, 0.15s opacity ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        .ghost {
+            background: #2d333b;
+        }
+
+        .ok {
+            background: #1e7f53;
+        }
+
+        .warn {
+            background: #9b5de5;
+        }
+
+        .danger {
+            background: #b23a48;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            resize: vertical;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #2b3340;
+            background: var(--panel-2);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        pre,
+        code {
+            font-family: var(--mono);
+            font-size: 12.5px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .title {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .pill {
+            display: inline-flex;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            background: #212734;
+            border: 1px solid #2d3442;
+            color: var(--muted);
+        }
+
+        .log {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .hint {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .divider {
+            height: 1px;
+            background: #212734;
+            margin: 12px 0;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <!-- Left: input + actions -->
+        <div class="card">
+            <h1>Intelligent Product Support</h1>
+            <div class="small">
+                API: <span class="pill" id="api-url">http://127.0.0.1:8000</span>
+                · Endpoints: <code>/classify</code>, <code>/classify_dl</code>, <code>/retrieve</code>,
+                <code>/solve</code>
+            </div>
+
+            <div style="margin-top: 14px;">
+                <label for="ticket">Paste a ticket JSON</label>
+                <textarea id="ticket" placeholder='{
+  "ticket_id": "TK-XXXX",
+  "subject": "Short title…",
+  "description": "Details…",
+  "error_logs": "…",
+  "stack_trace": "…",
+  "product": "DataSync Pro",
+  "product_module": "sync_engine",
+  "priority": "high",
+  "severity": "P2",
+  "language": "en",
+  "region": "NA"
+}'></textarea>
+                <div class="controls">
+                    <button class="ghost" id="btn-example">Load Example</button>
+                    <span class="hint">Tip: you can also grab one via
+                        <code>python -m scripts.sample_ticket --split test --idx 0 --out tmp_ticket.json</code></span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="row-3">
+                <div>
+                    <div class="title">Classify (XGBoost)</div>
+                    <button id="btn-classify-xgb">Run /classify</button>
+                </div>
+                <div>
+                    <div class="title">Classify (Keras DL)</div>
+                    <button class="warn" id="btn-classify-dl">Run /classify_dl</button>
+                </div>
+                <div>
+                    <div class="title">Retrieve Top-K</div>
+                    <div class="controls" style="margin: 0;">
+                        <input id="k" type="number" min="1" max="20" value="5"
+                            style="width: 70px; padding: 8px; border-radius: 8px; border: 1px solid #2b3340; background: var(--panel-2); color: var(--text);" />
+                        <button class="ghost" id="btn-retrieve">Run /retrieve</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls" style="margin-top: 12px;">
+                <button class="ok" id="btn-solve-xgb">Solve (XGB)</button>
+                <button class="ok" id="btn-solve-dl">Solve (Keras DL)</button>
+            </div>
+
+            <div id="status" class="log"></div>
+        </div>
+
+        <!-- Right: outputs -->
+        <div class="grid">
+            <div class="card">
+                <div class="title">Classification (XGBoost)</div>
+                <pre id="out-classify-xgb" class="muted">—</pre>
+                <div class="divider"></div>
+                <div class="title">Classification (Keras DL)</div>
+                <pre id="out-classify-dl" class="muted">—</pre>
+            </div>
+            <div class="card">
+                <div class="title">Retrieval</div>
+                <pre id="out-retrieve" class="muted">—</pre>
+                <div class="divider"></div>
+                <div class="title">Solve Summary</div>
+                <pre id="out-solve" class="muted">—</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiBase = window.location.origin;
+        document.getElementById("api-url").textContent = apiBase;
+
+        const $ = (id) => document.getElementById(id);
+        const setStatus = (msg) => { $("status").textContent = msg; console.log("[DEMO]", msg); };
+        const pretty = (obj) => JSON.stringify(obj, null, 2);
+
+        function tryParseJSON(raw) {
+            try { return JSON.parse(raw); }
+            catch (e) { return null; }
+        }
+
+        async function postJSON(endpoint, bodyObj) {
+            const url = `${apiBase}${endpoint}`;
+            console.log("POST", url, bodyObj);
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bodyObj)
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`${res.status} ${res.statusText} :: ${text}`);
+            }
+            return res.json();
+        }
+
+        function loadExample() {
+            const sample = {
+                "ticket_id": "TK-2024-000965",
+                "created_at": "2024-01-28T02:46:19Z",
+                "updated_at": "2024-01-28T04:44:31Z",
+                "product": "API Gateway",
+                "product_module": "cache_layer",
+                "subject": "Security concern with API Gateway authentication",
+                "description": "We have concerns about the authentication mechanism in API Gateway. Getting ERROR_PARSING errors. We need to ensure our system meets compliance requirements.",
+                "error_logs": "2024-01-28T02:46:19 DEBUG Processing request\n2024-01-28T02:46:19 ERROR ERROR_PARSING: Invalid request format",
+                "stack_trace": "main() at main.cpp:67",
+                "priority": "critical",
+                "severity": "P0",
+                "language": "en",
+                "region": "NA"
+            };
+            $("ticket").value = pretty(sample);
+        }
+
+        async function ensureTicket() {
+            const raw = $("ticket").value.trim();
+            if (!raw) { setStatus("Please paste a ticket JSON."); return null; }
+            const obj = tryParseJSON(raw);
+            if (!obj) { setStatus("Invalid JSON. Please fix and try again."); return null; }
+            return obj;
+        }
+
+        // Buttons
+        $("btn-example").addEventListener("click", loadExample);
+
+        $("btn-classify-xgb").addEventListener("click", async () => {
+            const t = await ensureTicket(); if (!t) return;
+            setStatus("Calling /classify …");
+            try {
+                const out = await postJSON("/classify", t);
+                $("out-classify-xgb").textContent = pretty(out);
+                setStatus("Done.");
+            } catch (e) {
+                setStatus("Error: " + e.message);
+            }
+        });
+
+        $("btn-classify-dl").addEventListener("click", async () => {
+            const t = await ensureTicket(); if (!t) return;
+            setStatus("Calling /classify_dl …");
+            try {
+                const out = await postJSON("/classify_dl", t);
+                $("out-classify-dl").textContent = pretty(out);
+                setStatus("Done.");
+            } catch (e) {
+                setStatus("Error: " + e.message);
+            }
+        });
+
+        $("btn-retrieve").addEventListener("click", async () => {
+            const t = await ensureTicket(); if (!t) return;
+            const k = parseInt($("k").value || "5", 10);
+            setStatus(`Calling /retrieve?k=${k} …`);
+            try {
+                const out = await postJSON(`/retrieve?k=${k}`, t);
+                $("out-retrieve").textContent = pretty(out);
+                setStatus("Done.");
+            } catch (e) {
+                setStatus("Error: " + e.message);
+            }
+        });
+
+        $("btn-solve-xgb").addEventListener("click", async () => {
+            const t = await ensureTicket(); if (!t) return;
+            const k = parseInt($("k").value || "5", 10);
+            setStatus(`Calling /solve?k=${k} (XGB) …`);
+            try {
+                const out = await postJSON(`/solve?k=${k}`, t);
+                $("out-classify-xgb").textContent = pretty(out.classification);
+                $("out-retrieve").textContent = pretty(out.retrieval);
+                $("out-solve").textContent = pretty({ summary: out.summary });
+                setStatus("Done.");
+            } catch (e) {
+                setStatus("Error: " + e.message);
+            }
+        });
+
+        $("btn-solve-dl").addEventListener("click", async () => {
+            const t = await ensureTicket(); if (!t) return;
+            const k = parseInt($("k").value || "5", 10);
+            setStatus(`Client Orchestration: /classify_dl → /retrieve?k=${k} …`);
+            try {
+                const cls = await postJSON(`/classify_dl`, t);
+                $("out-classify-dl").textContent = pretty(cls);
+
+                const ret = await postJSON(`/retrieve?k=${k}`, t);
+                $("out-retrieve").textContent = pretty(ret);
+
+                let summary = "No close matches found; try broadening filters or escalate.";
+                const results = ret && ret.results || [];
+                if (results.length > 0) {
+                    const top = results[0];
+                    summary = `Closest historical case: ${top.doc_id} (${top.category}::${top.subcategory}) `
+                        + `Resolution code: ${top.resolution_code} `
+                        + `Suggested next step: apply the known fix or verify the steps from the matched case; `
+                        + `if it diverges, re-run retrieval with broader filters.`;
+                }
+                $("out-solve").textContent = pretty({ summary, model: "keras_textonly" });
+                setStatus("Done.");
+            } catch (e) {
+                setStatus("Error: " + e.message);
+            }
+        });
+    </script>
+</body>
+
+</html>

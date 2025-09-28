@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  # Run the full one-shot pipeline inside a container (exits when done)
+  build_once:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: support-ai:latest
+    container_name: support-ai-build
+    command: bash -lc "scripts/build_all.sh"
+    volumes:
+      - ./data:/app/data
+
+  # FastAPI service (serves the trained model + retrieval + demo page)
+  api:
+    image: support-ai:latest
+    container_name: support-ai-api
+    depends_on:
+      - build_once
+    ports:
+      - "8000:8000"
+    environment:
+      - UVICORN_WORKERS=1
+    command: bash -lc 'echo "===========================================" && \
+                       echo " API running at:      http://127.0.0.1:8000" && \
+                       echo " Demo page available: http://127.0.0.1:8000/demo/demo.html" && \
+                       echo "===========================================" && \
+                       exec uvicorn service.api:app --host 0.0.0.0 --port 8000'
+    volumes:
+      - ./data:/app/data
+
+  # Optional: interactive shell for debugging
+  devshell:
+    image: support-ai:latest
+    container_name: support-ai-shell
+    command: bash
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./data:/app/data

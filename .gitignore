@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.ipynb_checkpoints/
+
+# --- Environments ---
+.venv/
+.conda/
+.mamba/
+.env
+.env.*
+
+# --- OS / Editor junk ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# --- Data & Artifacts ---
+# data/support_tickets.json
+# data/raw/
+# data/processed/
+# data/artifacts/
+# !data/.gitkeep
+
+# --- Logs ---
+logs/
+*.log
+dist/
+build/
+*.egg-info/
+*.nbconvert/
