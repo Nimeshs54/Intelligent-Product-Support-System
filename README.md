@@ -301,6 +301,26 @@ curl -X POST "http://127.0.0.1:8000/solve?k=5" \
   --data-binary @tmp_ticket.json
 ```
 
+## 🖥️ Demo
+
+The web interface provides an interactive way to test ticket classification and retrieval.  
+Below are example runs using **XGBoost** and **Keras DL** models.
+
+---
+
+### 🔹 XGBoost Classification + Retrieval
+This example shows a support ticket classified by the **XGBoost model** and matched against the knowledge base with top retrieved cases.
+<img width="1898" height="917" alt="xgb" src="https://github.com/user-attachments/assets/a9e5b9e7-9426-405c-b8d7-4915d8bf81fe" alt="XGBoost Demo"/>
+
+---
+
+### 🔹 Keras DL Classification + Retrieval
+This example demonstrates the same ticket processed with the **Keras DL model**, highlighting lightweight text-only classification and retrieval results.
+
+
+<img width="1903" height="928" alt="keras DL" src="https://github.com/user-attachments/assets/ba603262-1b59-4650-b191-a4a82cf115fd" alt="Keras DL Demo"/>
+
+
 ---
 
 ## 🧪 Reproducibility & Evaluation
